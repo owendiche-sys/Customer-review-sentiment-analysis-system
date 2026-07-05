@@ -12,6 +12,8 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 
+from uploaded_reviews import XQUIK_REVIEW_COLUMNS, prepare_uploaded_reviews
+
 
 st.set_page_config(
     page_title="Customer Review Sentiment Analysis System",
@@ -41,6 +43,7 @@ DEFAULT_REVIEW_COLUMNS = [
     "comment",
     "feedback",
     "review_body",
+    *XQUIK_REVIEW_COLUMNS,
 ]
 DEFAULT_TITLE_COLUMNS = ["title", "Title", "headline", "summary"]
 
@@ -472,6 +475,7 @@ with single_tab:
 
 with batch_tab:
     st.subheader("Analyse a CSV of reviews")
+    st.caption("CSV imports also detect Xquik-style text fields and common review aliases.")
     uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
     if uploaded_file is not None:
@@ -495,7 +499,12 @@ with batch_tab:
         title_col = None if title_col == "None" else title_col
 
         if st.button("Run batch analysis", type="primary"):
-            scored_batch = score_dataframe(batch_df, text_column=review_col, title_column=title_col)
+            prepared_batch = prepare_uploaded_reviews(
+                batch_df,
+                text_column=review_col,
+                title_column=title_col,
+            )
+            scored_batch = score_dataframe(prepared_batch, text_column="app_upload_text")
             st.success("Batch analysis complete")
 
             batch_metrics = st.columns(3)
